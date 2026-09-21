@@ -1,0 +1,200 @@
+import type { Location } from "@/types";
+
+// 城市地点数据 — 适配 5 子岛新坐标
+export const LOCATIONS: Location[] = [
+  // 静安森林岛（中心 175,135）
+  {
+    id: "jingan-temple",
+    name: "静安寺",
+    category: "culture",
+    districtId: "jingan",
+    description: "千年古刹，金色屋顶在森林中格外醒目",
+    emoji: "🛕",
+    distance: "0.3km",
+    recommendCount: 890,
+    tag: "地标",
+    position: { x: 160, y: 115 },
+    reward: { exp: 15, coins: 5 },
+  },
+  {
+    id: "wukang-coffee",
+    name: "武康路咖啡街",
+    category: "coffee",
+    districtId: "jingan",
+    description: "梧桐树下的独立咖啡店，每家都值得坐坐",
+    emoji: "☕",
+    distance: "1.5km",
+    recommendCount: 620,
+    tag: "咖啡",
+    position: { x: 195, y: 150 },
+    reward: { exp: 20, coins: 10 },
+  },
+  // 黄浦中心岛（中心 425,135）
+  {
+    id: "bund-view",
+    name: "外滩观景台",
+    category: "culture",
+    districtId: "huangpu",
+    description: "万国建筑博览群，黄浦江畔夜景绝佳",
+    emoji: "🏙️",
+    distance: "0.5km",
+    recommendCount: 1280,
+    tag: "地标",
+    position: { x: 410, y: 110 },
+    reward: { exp: 20, coins: 10 },
+  },
+  {
+    id: "nanjing-road",
+    name: "南京路步行街",
+    category: "activity",
+    districtId: "huangpu",
+    description: "中华商业第一街，逛街好去处",
+    emoji: "🛍️",
+    distance: "1.2km",
+    recommendCount: 980,
+    tag: "逛街",
+    position: { x: 445, y: 125 },
+    reward: { exp: 10, coins: 5 },
+  },
+  {
+    id: "chenghuang-food",
+    name: "城隍庙小吃",
+    category: "food",
+    districtId: "huangpu",
+    description: "南翔小笼、蟹粉汤包、排骨年糕",
+    emoji: "🍜",
+    distance: "2.0km",
+    recommendCount: 1560,
+    tag: "美食",
+    position: { x: 400, y: 155 },
+    reward: { exp: 15, coins: 8 },
+  },
+  {
+    id: "yuyuan-garden",
+    name: "豫园花园",
+    category: "park",
+    districtId: "huangpu",
+    description: "明代私家园林，江南园林代表",
+    emoji: "🌿",
+    distance: "2.5km",
+    recommendCount: 760,
+    tag: "公园",
+    position: { x: 450, y: 160 },
+    reward: { exp: 15, coins: 5 },
+  },
+  {
+    id: "bund-coffee",
+    name: "外滩源咖啡馆",
+    category: "coffee",
+    districtId: "huangpu",
+    description: "历史建筑里的精品咖啡，江景位绝佳",
+    emoji: "☕",
+    distance: "0.8km",
+    recommendCount: 420,
+    tag: "咖啡",
+    position: { x: 430, y: 95 },
+    reward: { exp: 20, coins: 10 },
+  },
+  {
+    id: "bund-art",
+    name: "外滩美术馆",
+    category: "culture",
+    districtId: "huangpu",
+    description: "当代艺术展览，历史建筑内的艺术空间",
+    emoji: "🎨",
+    distance: "1.0km",
+    recommendCount: 350,
+    tag: "展览",
+    position: { x: 385, y: 120 },
+    reward: { exp: 25, coins: 8 },
+  },
+  // 徐汇生活岛（中心 300,255）
+  {
+    id: "wukang-mansion",
+    name: "武康大楼",
+    category: "culture",
+    districtId: "xuhui",
+    description: "诺曼底公寓，上海标志性的历史建筑",
+    emoji: "🏛️",
+    distance: "0.8km",
+    recommendCount: 1100,
+    tag: "地标",
+    position: { x: 285, y: 240 },
+    reward: { exp: 20, coins: 8 },
+  },
+  {
+    id: "west-bund",
+    name: "西岸美术馆",
+    category: "culture",
+    districtId: "xuhui",
+    description: "沿江艺术大道，多个美术馆聚集",
+    emoji: "🎨",
+    distance: "2.0km",
+    recommendCount: 530,
+    tag: "展览",
+    position: { x: 320, y: 275 },
+    reward: { exp: 25, coins: 10 },
+  },
+  // 杨浦创意岛（中心 175,365）
+  {
+    id: "daxue-road",
+    name: "大学路",
+    category: "activity",
+    districtId: "yangpu",
+    description: "年轻人聚集的文艺街区，酒吧和小店密布",
+    emoji: "🎸",
+    distance: "0.5km",
+    recommendCount: 450,
+    tag: "逛街",
+    position: { x: 185, y: 350 },
+    reward: { exp: 15, coins: 8 },
+  },
+  // 浦东未来岛（中心 425,365）
+  {
+    id: "lujiazui",
+    name: "陆家嘴",
+    category: "culture",
+    districtId: "pudong",
+    description: "东方明珠、上海中心、环球金融中心",
+    emoji: "🌆",
+    distance: "1.0km",
+    recommendCount: 1320,
+    tag: "地标",
+    position: { x: 415, y: 345 },
+    reward: { exp: 20, coins: 10 },
+  },
+  {
+    id: "century-park",
+    name: "世纪公园",
+    category: "park",
+    districtId: "pudong",
+    description: "上海最大的城市公园，周末野餐好去处",
+    emoji: "🌳",
+    distance: "3.0km",
+    recommendCount: 680,
+    tag: "公园",
+    position: { x: 440, y: 390 },
+    reward: { exp: 15, coins: 5 },
+  },
+];
+
+// 按 districtId 查找地点
+export const getLocationsByDistrict = (districtId: string): Location[] =>
+  LOCATIONS.filter((l) => l.districtId === districtId);
+
+// 按 category 查找地点
+export const getLocationsByCategory = (category: string): Location[] =>
+  LOCATIONS.filter((l) => l.category === category);
+
+// 按 ID 查找地点
+export const getLocationById = (id: string): Location | undefined =>
+  LOCATIONS.find((l) => l.id === id);
+
+// 地点分类标签
+export const CATEGORY_LABELS: { id: string; label: string }[] = [
+  { id: "food", label: "🍜 美食" },
+  { id: "coffee", label: "☕ 咖啡" },
+  { id: "culture", label: "🎨 展览" },
+  { id: "park", label: "🌳 公园" },
+  { id: "activity", label: "🎯 活动" },
+];
