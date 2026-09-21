@@ -1,22 +1,22 @@
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import LocationCard from "@/components/LocationCard";
 import { DISTRICTS, getDistrictById } from "@/data/districts";
 import { getLocationsByDistrict, CATEGORY_LABELS } from "@/data/locations";
 
-export default async function MapPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ district?: string }>;
-}) {
-  const { district } = await searchParams;
-  const districtId = district || "huangpu";
+function MapContent() {
+  const searchParams = useSearchParams();
+  const districtId = searchParams.get("district") || "huangpu";
   const info = getDistrictById(districtId) || DISTRICTS[0];
   const locations = getLocationsByDistrict(districtId);
 
   return (
     <div className="min-h-screen flex flex-col">
       <div className="px-4 pt-6 pb-2">
-        <Link href="/" className="text-xs text-[var(--ink-faint)] mb-2 inline-block">
+        <Link href="../" className="text-xs text-[var(--ink-faint)] mb-2 inline-block">
           ← 返回岛屿地图
         </Link>
         <h1 className="text-xl font-bold text-[var(--ink)]">{info.name}</h1>
@@ -66,5 +66,13 @@ export default async function MapPage({
         )}
       </div>
     </div>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <MapContent />
+    </Suspense>
   );
 }
