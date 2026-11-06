@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import SocialPanel from "@/components/city/SocialPanel";
+import { useState } from "react";
+import { createPersistentStore, isRecord } from "@/lib/persistent-store";
+import { usePersistentStore } from "@/hooks/usePersistentStore";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { useHome } from "@/contexts/HomeContext";
 import { INITIAL_POSTS, type IslandPost } from "@/game/posts";
 import { LOCATIONS } from "@/data/locations";
 import { DISTRICTS } from "@/data/districts";
@@ -11,55 +13,36 @@ import PublishPost from "@/components/game/PublishPost";
 import GamePanel from "@/components/game/ui/GamePanel";
 import { gameColors } from "@/styles/game-theme";
 
-const STORAGE_KEY = "shanghai_island_posts";
+const postsStore = createPersistentStore("shanghai_island_posts", INITIAL_POSTS, (value): IslandPost[] => {
+  if (!Array.isArray(value)) return INITIAL_POSTS;
+  return value.filter((post): post is IslandPost => isRecord(post)
+    && ["id", "userId", "nickname", "avatar", "locationId", "locationName", "districtId", "content", "createdAt"].every((key) => typeof post[key] === "string")
+    && typeof post.likes === "number" && typeof post.comments === "number");
+});
 
 type Tab = "all" | "following" | "nearby" | "saved";
 
 export default function SquarePage() {
   const { state } = usePlayer();
-  const { home } = useHome();
-  const [posts, setPosts] = useState<IslandPost[]>(INITIAL_POSTS);
+  const [socialTab,setSocialTab]=useState<"place"|"school"|null>(null);
+  const [posts, setPosts, isLoaded] = usePersistentStore(postsStore);
   const [tab, setTab] = useState<Tab>("all");
   const [nearbyDistrict, setNearbyDistrict] = useState<string>("all");
   const [showPublish, setShowPublish] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // 从 localStorage 加载
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setPosts(parsed);
-        }
-      }
-    } catch {}
-    setIsLoaded(true);
-  }, []);
-
-  // 保存到 localStorage
-  const savePosts = (newPosts: IslandPost[]) => {
-    setPosts(newPosts);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newPosts)); } catch {}
-  };
-
   // 点赞
   const handleLike = (postId: string) => {
-    const newPosts = posts.map((p) =>
+    setPosts((previous) => previous.map((p) =>
       p.id === postId
         ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
         : p
-    );
-    savePosts(newPosts);
+    ));
   };
 
   // 收藏
   const handleSave = (postId: string) => {
-    const newPosts = posts.map((p) =>
+    setPosts((previous) => previous.map((p) =>
       p.id === postId ? { ...p, saved: !p.saved } : p
-    );
-    savePosts(newPosts);
+    ));
   };
 
   // 发布动态
@@ -68,7 +51,7 @@ export default function SquarePage() {
     if (!loc) return;
 
     const newPost: IslandPost = {
-      id: `post-${Date.now()}`,
+      id: `post-${crypto.randomUUID()}`,
       userId: state.player.id,
       nickname: state.player.nickname,
       avatar: state.player.avatar,
@@ -85,13 +68,13 @@ export default function SquarePage() {
       saved: false,
       createdAt: "刚刚",
     };
-    savePosts([newPost, ...posts]);
+    setPosts((previous) => [newPost, ...previous]);
   };
 
   // 筛选动态
   const filteredPosts = (() => {
     if (tab === "all") return posts;
-    if (tab === "following") return posts.filter((p) => p.userId !== state.player.id).slice(0, 5);
+    if (tab === "following") return posts.filter((p) => INITIAL_POSTS.some(seed=>seed.id===p.id)).slice(0, 5);
     if (tab === "nearby") {
       if (nearbyDistrict === "all") return posts;
       return posts.filter((p) => p.districtId === nearbyDistrict);
@@ -102,8 +85,8 @@ export default function SquarePage() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "all", label: "全部" },
-    { id: "following", label: "关注" },
-    { id: "nearby", label: "附近" },
+    { id: "following", label: "精选示例" },
+    { id: "nearby", label: "按岛筛选" },
     { id: "saved", label: "想去" },
   ];
 
@@ -123,11 +106,17 @@ export default function SquarePage() {
             </p>
           </div>
           <GamePanel variant="floating" className="px-2.5 py-1.5">
-            <span className="text-[10px] text-[var(--ink-soft)]">🟢 {posts.filter(p => p.createdAt === "刚刚" || p.createdAt.includes("分钟")).length} 人在线</span>
+            <span className="text-[10px] text-[var(--ink-soft)]">演示社区 · 本机保存</span>
           </GamePanel>
         </div>
       </div>
 
+      <section className="mx-4 mb-5 grid grid-cols-2 gap-3" aria-label="街区社交入口">
+        <button onClick={()=>setSocialTab("place")} className="rounded-2xl bg-[#d6f3ee] p-5 text-left text-[#155d59]"><span className="text-2xl">✉️</span><strong className="block mt-2">地点留言</strong><span className="text-xs">接着聊聊街角的新发现</span></button>
+        <button onClick={()=>setSocialTab("school")} className="rounded-2xl bg-[#fff0be] p-5 text-left text-[#795216]"><span className="text-2xl">🎓</span><strong className="block mt-2">同校发现</strong><span className="text-xs">自选学校，发现共同话题</span></button>
+      </section>
+      <p className="px-4 mb-3 text-xs text-[var(--ink-soft)]">下方为岛民动态；地点留言与城市街道使用同一份本机记录。</p>
+      {socialTab&&<SocialPanel initialPlace="wukang-coffee" initialTab={socialTab} onClose={()=>setSocialTab(null)} />}
       {/* Tab 切换 */}
       <div className="px-4 mb-3">
         <div className="flex gap-2">
@@ -192,6 +181,7 @@ export default function SquarePage() {
 
       {/* 浮动发布按钮 */}
       <button
+        aria-label="发布本机动态"
         onClick={() => setShowPublish(true)}
         className="fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center spring-transition hover:scale-110"
         style={{

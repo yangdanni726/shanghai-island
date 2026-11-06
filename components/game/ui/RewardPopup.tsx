@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { gameColors, gameRadius, gameShadow, gameFont, gameTransition } from "@/styles/game-theme";
+import Modal from "./Modal";
 import GameButton from "./GameButton";
 
 interface Reward {
@@ -36,16 +37,7 @@ export default function RewardPopup({
   }, []);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={onClose}
-    >
-      {/* 背景遮罩 */}
-      <div
-        className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}
-      />
-
+    <Modal label={title} onClose={onClose}>
       {/* 弹窗内容 */}
       <div
         onClick={(e) => e.stopPropagation()}
@@ -130,6 +122,6 @@ export default function RewardPopup({
           </GameButton>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

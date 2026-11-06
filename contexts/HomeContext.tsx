@@ -1,166 +1,84 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import type { HomeState, FurnitureItem } from "@/game/home";
+import { createContext, useContext, useCallback } from "react";
+import type { HomeState, FurnitureItem, DecorationItem } from "@/game/home";
 import { createDefaultHome, getHomeLevelInfo, HOME_LEVELS, UNLOCKABLE_FURNITURE } from "@/game/home";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useQuests } from "@/contexts/QuestContext";
+import { BADGES } from "@/game/quests";
+import { createPersistentStore, isRecord } from "@/lib/persistent-store";
+import { usePersistentStore } from "@/hooks/usePersistentStore";
 
-const STORAGE_KEY = "shanghai_island_home";
+function normalizeHome(value: unknown): HomeState {
+  const initial = createDefaultHome();
+  if (!isRecord(value)) return initial;
+  return {
+    ...initial,
+    homeLevel: HOME_LEVELS.some((level) => level.level === value.homeLevel) ? value.homeLevel as number : 1,
+    furniture: Array.isArray(value.furniture) ? value.furniture.filter((item): item is FurnitureItem =>
+      isRecord(item) && typeof item.id === "string" && typeof item.name === "string" && typeof item.emoji === "string" && Number.isInteger(item.slot)
+    ) : initial.furniture,
+    decorations: Array.isArray(value.decorations) ? value.decorations.filter((item): item is DecorationItem =>
+      isRecord(item) && typeof item.id === "string" && typeof item.name === "string" && typeof item.emoji === "string"
+    ) : [],
+  };
+}
+const homeStore = createPersistentStore("shanghai_island_home", createDefaultHome(), normalizeHome);
 
 interface HomeContextType {
   home: HomeState;
-  // 升级小屋
   upgradeHome: () => boolean;
-  // 添加家具到槽位
   placeFurniture: (item: FurnitureItem, slot: number) => void;
-  // 移除家具
   removeFurniture: (slot: number) => void;
-  // 添加装饰
   addDecoration: (id: string, name: string, emoji: string) => void;
-  // 获取当前等级配置
   getHomeLevel: () => { level: number; name: string; slots: number; upgradeCost: number };
-  // 获取已解锁但未放置的家具
   getAvailableFurniture: () => FurnitureItem[];
 }
-
 const HomeContext = createContext<HomeContextType | null>(null);
 
 export function HomeProvider({ children }: { children: React.ReactNode }) {
-  const { state, addCoins } = usePlayer();
-  const [home, setHome] = useState<HomeState>(createDefaultHome());
+  const { state, spendCoins } = usePlayer();
+  const { progress } = useQuests();
+  const [savedHome, setHome] = usePersistentStore(homeStore);
+  // These are views of the authoritative stores, not duplicated data synchronized in Effects.
+  const home: HomeState = {
+    ...savedHome, collectedPlaces: state.exploredLocations,
+    trophies: BADGES.filter((badge) => progress[badge.id]?.status === "claimed").map((badge) => badge.id),
+  };
 
-  // 从 localStorage 加载
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setHome({
-          homeLevel: parsed.homeLevel ?? 1,
-          furniture: parsed.furniture ?? [],
-          decorations: parsed.decorations ?? [],
-          trophies: parsed.trophies ?? [],
-          collectedPlaces: parsed.collectedPlaces ?? [],
-        });
-      }
-    } catch {}
-  }, []);
-
-  // 同步探索地点到 collectedPlaces
-  useEffect(() => {
-    if (state.exploredLocations.length > 0) {
-      setHome((prev) => {
-        if (prev.collectedPlaces.length === state.exploredLocations.length) return prev;
-        const newHome = { ...prev, collectedPlaces: [...state.exploredLocations] };
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newHome)); } catch {}
-        return newHome;
-      });
-    }
-  }, [state.exploredLocations]);
-
-  // 同步已完成徽章到 trophies
-  useEffect(() => {
-    const claimedQuests = state.completedMissions;
-    if (claimedQuests.length > 0) {
-      setHome((prev) => {
-        if (prev.trophies.length === claimedQuests.length) return prev;
-        const newHome = { ...prev, trophies: [...claimedQuests] };
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newHome)); } catch {}
-        return newHome;
-      });
-    }
-  }, [state.completedMissions]);
-
-  const save = useCallback((newHome: HomeState) => {
-    setHome(newHome);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newHome)); } catch {}
-  }, []);
-
-  // 升级小屋
   const upgradeHome = useCallback(() => {
-    const currentLevel = HOME_LEVELS.find((h) => h.level === home.homeLevel);
-    if (!currentLevel || currentLevel.upgradeCost === 0) return false;
-    if (state.coins < currentLevel.upgradeCost) return false;
-
-    addCoins(-currentLevel.upgradeCost);
-    const newHome: HomeState = {
-      ...home,
-      homeLevel: home.homeLevel + 1,
-    };
-    save(newHome);
+    const current = homeStore.getSnapshot();
+    const level = getHomeLevelInfo(current.homeLevel);
+    if (level.upgradeCost <= 0 || !spendCoins(level.upgradeCost)) return false;
+    setHome({ ...current, homeLevel: current.homeLevel + 1 });
     return true;
-  }, [home, state.coins, addCoins, save]);
+  }, [setHome, spendCoins]);
 
-  // 放置家具到槽位
   const placeFurniture = useCallback((item: FurnitureItem, slot: number) => {
-    setHome((prev) => {
-      // 移除该槽位已有家具
-      const filtered = prev.furniture.filter((f) => f.slot !== slot);
-      // 添加新家具
-      const newFurniture = [...filtered, { ...item, slot }];
-      const newHome = { ...prev, furniture: newFurniture };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newHome)); } catch {}
-      return newHome;
+    setHome((previous) => {
+      if (!Number.isInteger(slot) || slot < 0 || slot >= getHomeLevelInfo(previous.homeLevel).slots) return previous;
+      return { ...previous, furniture: [...previous.furniture.filter((entry) => entry.slot !== slot && entry.id !== item.id), { ...item, slot }] };
     });
-  }, []);
-
-  // 移除家具
+  }, [setHome]);
   const removeFurniture = useCallback((slot: number) => {
-    setHome((prev) => {
-      const newFurniture = prev.furniture.filter((f) => f.slot !== slot);
-      const newHome = { ...prev, furniture: newFurniture };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newHome)); } catch {}
-      return newHome;
-    });
-  }, []);
-
-  // 添加装饰
+    setHome((previous) => ({ ...previous, furniture: previous.furniture.filter((item) => item.slot !== slot) }));
+  }, [setHome]);
   const addDecoration = useCallback((id: string, name: string, emoji: string) => {
-    setHome((prev) => {
-      if (prev.decorations.some((d) => d.id === id)) return prev;
-      const newHome = {
-        ...prev,
-        decorations: [...prev.decorations, { id, name, emoji, position: "wall" as const }],
-      };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newHome)); } catch {}
-      return newHome;
+    setHome((previous) => previous.decorations.some((item) => item.id === id) ? previous : {
+      ...previous, decorations: [...previous.decorations, { id, name, emoji, position: "wall" }],
     });
-  }, []);
-
-  // 获取当前等级配置
-  const getHomeLevel = useCallback(() => {
-    const info = getHomeLevelInfo(home.homeLevel);
-    return {
-      level: info.level,
-      name: info.name,
-      slots: info.slots,
-      upgradeCost: info.upgradeCost,
-    };
-  }, [home.homeLevel]);
-
-  // 获取已解锁但未放置的家具
+  }, [setHome]);
+  const getHomeLevel = useCallback(() => getHomeLevelInfo(savedHome.homeLevel), [savedHome.homeLevel]);
   const getAvailableFurniture = useCallback(() => {
-    const placed = new Set(home.furniture.map((f) => f.id));
-    return UNLOCKABLE_FURNITURE.filter((f) => !placed.has(f.id));
-  }, [home.furniture]);
+    const placed = new Set(savedHome.furniture.map((item) => item.id));
+    return UNLOCKABLE_FURNITURE.filter((item) => !placed.has(item.id));
+  }, [savedHome.furniture]);
 
-  return (
-    <HomeContext.Provider value={{
-      home,
-      upgradeHome,
-      placeFurniture,
-      removeFurniture,
-      addDecoration,
-      getHomeLevel,
-      getAvailableFurniture,
-    }}>
-      {children}
-    </HomeContext.Provider>
-  );
+  return <HomeContext.Provider value={{ home, upgradeHome, placeFurniture, removeFurniture, addDecoration, getHomeLevel, getAvailableFurniture }}>{children}</HomeContext.Provider>;
 }
 
 export function useHome() {
-  const ctx = useContext(HomeContext);
-  if (!ctx) throw new Error("useHome must be used within HomeProvider");
-  return ctx;
+  const context = useContext(HomeContext);
+  if (!context) throw new Error("useHome must be used within HomeProvider");
+  return context;
 }

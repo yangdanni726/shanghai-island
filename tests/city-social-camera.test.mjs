@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {panCamera} from '../lib/city-camera.ts';
+import {normalizeSocial,selectNotes,SAMPLE_NOTES} from '../lib/city-social.ts';
+test('screen pan moves camera in both directions and clamps at city bounds',()=>{const p=panCamera({x:0,z:0},100,0,13,800);assert.ok(p.x>0&&p.z<0);const reverse=panCamera(p,-100,0,13,800);assert.ok(Math.abs(reverse.x)<1e-8&&Math.abs(reverse.z)<1e-8);const far=panCamera({x:27,z:23},10000,10000,40,1);assert.ok(Math.abs(far.x)<=27&&Math.abs(far.z)<=23);});
+test('camera pan is proportional to current zoom',()=>{const a=panCamera({x:0,z:0},20,20,10,800),b=panCamera({x:0,z:0},20,20,20,800);assert.equal(b.x,a.x*2);assert.equal(b.z,a.z*2);});
+test('school filter never treats unselected schools as a matching group',()=>{assert.equal(selectNotes(SAMPLE_NOTES,null,'').length,0);const notes=selectNotes(SAMPLE_NOTES,null,'复旦大学');assert.equal(notes.length,1);assert.ok(notes.every(n=>n.school==='复旦大学'));assert.equal(selectNotes(SAMPLE_NOTES,'west-bund',null).length,2);});
+test('saved social state rejects malformed data and duplicates without injecting samples',()=>{const note={...SAMPLE_NOTES[0],id:'local',authorId:'user',text:'  很喜欢这里  '};const saved=normalizeSocial({schools:{user:'同济大学',bad:'未知学校'},notes:[note,note,{...note,id:'bad',placeId:'unknown'},null]});assert.deepEqual(saved.schools,{user:'同济大学'});assert.equal(saved.notes.length,1);assert.equal(saved.notes[0].text,'很喜欢这里');assert.deepEqual(normalizeSocial({notes:[]}),{schools:{},notes:[]});});
+test('school changes do not relabel historical notes',()=>{const note={...SAMPLE_NOTES[0],authorId:'user'};const saved=normalizeSocial({schools:{user:'同济大学'},notes:[note]});assert.equal(saved.notes[0].school,'复旦大学');assert.equal(selectNotes(saved.notes,null,'同济大学').length,0);});

@@ -1,17 +1,21 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import LocationPanel from "@/components/game/LocationPanel";
 import LocationCard from "@/components/LocationCard";
 import { DISTRICTS, getDistrictById } from "@/data/districts";
 import { getLocationsByDistrict, CATEGORY_LABELS } from "@/data/locations";
 
 function MapContent() {
   const searchParams = useSearchParams();
-  const districtId = searchParams.get("district") || "huangpu";
-  const info = getDistrictById(districtId) || DISTRICTS[0];
+  const router = useRouter();
+  const info = getDistrictById(searchParams.get("district") || "huangpu") || DISTRICTS[0];
+  const districtId = info.id;
   const locations = getLocationsByDistrict(districtId);
+
+  const selected = locations.find(l => l.id === searchParams.get("location"));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -50,13 +54,14 @@ function MapContent() {
       </div>
 
       <div className="px-4 pb-4">
-        <h2 className="text-sm font-bold text-[var(--ink)] mb-3">今日热门地点</h2>
+        <h2 className="text-sm font-bold text-[var(--ink)] mb-3">街区探索地点</h2>
         {locations.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {locations.map((spot) => (
               <LocationCard key={spot.id}
                 name={spot.name} tag={spot.tag} distance={spot.distance}
-                recommendCount={spot.recommendCount} emoji={spot.emoji} />
+                recommendCount={spot.recommendCount} emoji={spot.emoji}
+                onExplore={() => router.push(`/map?district=${districtId}&location=${spot.id}`)} />
             ))}
           </div>
         ) : (
@@ -65,6 +70,7 @@ function MapContent() {
           </p>
         )}
       </div>
+      {selected && <LocationPanel key={selected.id} location={selected} onClose={() => router.replace(`/map?district=${districtId}`)} />}
     </div>
   );
 }

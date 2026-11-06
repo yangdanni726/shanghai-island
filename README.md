@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 上海岛 Shanghai Island
 
-## Getting Started
+面向本地青年的城市探索功能展示：五岛总览、一个 3D 样本街区、探索成长、任务、小屋及本机轻社交。上海是样本城市，地图为主题化表达。
 
-First, run the development server:
+## 当前规则
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+[规则与功能基线](docs/CURRENT_RULES.md)记录地点、任务、奖励、等级、小屋费用、实际功能状态和历史差异。以代码数据表为数值依据；历史设计说明不代表当前实现。
+
+## 本地启动
+
+使用 Node.js 24（当前测试环境）。
+
+```sh
+npm ci
+npm run dev -- --hostname 127.0.0.1 --port 4180
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 http://127.0.0.1:4180/shanghai-island/ 。首次进入创建本机岛民身份。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+方向键控制角色；双指滑动或按住拖动画布平移；捏合或 Ctrl/Cmd + 滚动缩放，也可用加减按钮；“回到角色”恢复跟随。双击地点标记查看演示交通，或点击地点列表。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 验证与构建
 
-## Learn More
+```sh
+npm run lint
+npm test
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+静态产物在 out，固定 basePath 为 /shanghai-island。需通过 HTTP 服务访问，不能直接以 file 协议打开。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 展示边界
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+13 个地点，其中 4 个映射至 3D 街道；其他地点从五岛地图探索。任务为累计一次性目标，尚无自动日／周刷新。交通数据为示例，游戏到达不等于现实到访。角色、帖子、学校选择、留言保存在本机，没有账户认证、真实校友认证或云端同步。小屋家具装修、广场帖子评论、真实关注及后端尚未接入。本地最新版本未公开部署。
 
-## Deploy on Vercel
+## V5 3D小屋
+/island 已接入本地Blender制作的GLB模型，支持拖动旋转、双指平移、缩放与重置。窗外为配套林荫街景背景，家具为固定样板；旧存档保留。29项测试通过。源模型、生成脚本和实施说明位于工作区 outputs/home-v5。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 稳定本地演示（2026-11-06）
+先运行 `npm run build`，再双击 `启动上海岛.command` 或运行 `python3 scripts/preview.py`。服务仅绑定 127.0.0.1，独立于开发终端。默认端口4180；已有上海岛服务则复用，其他服务占用时报告错误，不自动停止进程。开发时仍可使用 `npm run dev -- --hostname 127.0.0.1 --port 4180`。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+城市入口：http://127.0.0.1:4180/shanghai-island/
+小屋入口：http://127.0.0.1:4180/shanghai-island/island/
+
+原存档按浏览器与端口隔离；不要为排错清空存档。测试端口4181与正式本地演示4180互不影响。未推送或发布公网。验收记录见 `docs/RELEASE_CHECK.md`。

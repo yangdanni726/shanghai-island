@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { IslandPost } from "@/game/posts";
+import { INITIAL_POSTS, type IslandPost } from "@/game/posts";
 import { gameColors, gameRadius, gameShadow } from "@/styles/game-theme";
 
 interface PostCardProps {
@@ -70,7 +70,7 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         {/* 昵称 + 时间 */}
         <div className="flex-1 min-w-0">
           <div className="text-xs font-bold text-[var(--ink)] truncate">{post.nickname}</div>
-          <div className="text-[10px] text-[var(--ink-faint)]">{post.createdAt}</div>
+          <div className="text-[10px] text-[var(--ink-faint)]">{INITIAL_POSTS.some(seed=>seed.id===post.id) ? "虚构示例 · 互动数为演示" : "本机动态"} · {post.createdAt}</div>
         </div>
       </div>
 
@@ -135,10 +135,10 @@ export default function PostCard({ post, onLike, onSave }: PostCardProps) {
         </button>
 
         {/* 评论 */}
-        <button className="flex items-center gap-1.5">
+        <span className="flex items-center gap-1.5" title="广场评论尚未接入">
           <span className="text-base opacity-60">💬</span>
-          <span className="text-[11px] font-semibold text-[var(--ink-faint)]">{post.comments}</span>
-        </button>
+          <span className="text-[11px] font-semibold text-[var(--ink-faint)]">评论待开放</span>
+        </span>
 
         {/* 收藏 */}
         <button

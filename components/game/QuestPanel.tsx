@@ -1,16 +1,18 @@
 "use client";
 
+import Link from "next/link";
+import { LOCATIONS } from "@/data/locations";
+import { suggestQuestLocation } from "@/lib/quest-rules";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useQuests } from "@/contexts/QuestContext";
 import { getDailyQuests, getWeeklyQuests, getAchievementQuests, BADGES } from "@/game/quests";
-import { LOCATIONS } from "@/data/locations";
 import GamePanel from "@/components/game/ui/GamePanel";
 import GameButton from "@/components/game/ui/GameButton";
 import ProgressBar from "@/components/game/ui/ProgressBar";
 import RewardPopup from "@/components/game/ui/RewardPopup";
-import { gameColors, gameFont } from "@/styles/game-theme";
+import { gameColors } from "@/styles/game-theme";
 
 export default function QuestPanel() {
   const router = useRouter();
@@ -34,33 +36,12 @@ export default function QuestPanel() {
     }
   };
 
-  const handleGoComplete = (districtId?: string) => {
-    if (districtId) {
-      router.push(`/map?district=${districtId}`);
-    } else {
-      router.push("/");
-    }
-  };
-
-  // 获取该分类已探索数量
-  const getCategoryExploredCount = (category: string) => {
-    return state.exploredLocations.filter((id) => {
-      const loc = LOCATIONS.find((l) => l.id === id);
-      return loc?.category === category;
-    }).length;
-  };
-
   const renderQuestCard = (quest: typeof dailyQuests[0]) => {
+    const suggested = suggestQuestLocation(quest, LOCATIONS, state.exploredLocations);
     const progress = getQuestProgress(quest.id);
     const isCompleted = progress.status === "completed";
     const isClaimed = progress.status === "claimed";
-    const currentProgress = progress.progress;
-
-    // 对于 category 类型任务，使用实际探索数
-    let displayProgress = currentProgress;
-    if (quest.target.type === "category") {
-      displayProgress = getCategoryExploredCount(quest.target.value as string);
-    }
+    const displayProgress = Math.min(progress.progress, quest.targetCount);
 
     return (
       <div
@@ -110,9 +91,9 @@ export default function QuestPanel() {
             <GameButton
               variant="secondary"
               size="sm"
-              onClick={() => handleGoComplete()}
+              onClick={() => router.push(suggested ? `/map?district=${suggested.districtId}&location=${suggested.id}` : "/map")}
             >
-              去完成
+              {suggested ? `去探索 · ${suggested.name}` : "查看地点"}
             </GameButton>
           )}
           {isCompleted && (
@@ -143,9 +124,9 @@ export default function QuestPanel() {
               </div>
               <div className="mt-1.5">
                 <ProgressBar
-                  value={state.experience}
-                  max={levelInfo.maxExp}
-                  variant="exp"
+                  value={levelInfo.levelExp}
+                  max={levelInfo.levelSpan}
+                  label={levelInfo.isMaxLevel ? "已达最高等级" : "本级经验"} variant="exp"
                   height={6}
                   showLabel
                 />
@@ -162,8 +143,8 @@ export default function QuestPanel() {
       {/* 每日任务 */}
       <div className="px-4 mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-bold text-[var(--ink)]">📋 今日探索</span>
-          <span className="text-[9px] text-[var(--ink-faint)]">每日刷新</span>
+          <span className="text-sm font-bold text-[var(--ink)]">📋 探索任务</span>
+          <span className="text-[9px] text-[var(--ink-faint)]">本机记录 · 展示版</span>
         </div>
         <div className="space-y-2">
           {dailyQuests.map(renderQuestCard)}
@@ -173,8 +154,8 @@ export default function QuestPanel() {
       {/* 每周挑战 */}
       <div className="px-4 mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-bold text-[var(--ink)]">🗓️ 本周挑战</span>
-          <span className="text-[9px] text-[var(--ink-faint)]">周日刷新</span>
+          <span className="text-sm font-bold text-[var(--ink)]">🗓️ 进阶挑战</span>
+          <span className="text-[9px] text-[var(--ink-faint)]">本机累计</span>
         </div>
         <div className="space-y-2">
           {weeklyQuests.map(renderQuestCard)}
@@ -227,8 +208,10 @@ export default function QuestPanel() {
           subtitle="任务奖励已发放！"
           rewards={reward}
           onClose={() => setReward(null)}
-          buttonText="太棒了！"
-        />
+          buttonText="继续查看任务"
+        >
+          <Link className="block my-3 text-sm font-bold underline" href={reward.badge ? "/island?tab=badges" : "/island"}>{reward.badge ? "去小屋查看新徽章 →" : "回小屋使用金币 →"}</Link>
+        </RewardPopup>
       )}
     </div>
   );

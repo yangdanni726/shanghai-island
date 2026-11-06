@@ -19,21 +19,21 @@ export function getMissionPoints(): MapInteraction[] {
   return [
     {
       id: "mission-daily",
-      name: "每日打卡",
+      name: "探索任务",
       type: "mission",
       positionX: 300,
       positionY: 95,
       emoji: "⭐",
-      interaction: "领取每日任务",
+      interaction: "查看探索任务",
     },
     {
       id: "mission-weekly",
-      name: "周末挑战",
+      name: "进阶挑战",
       type: "mission",
       positionX: 500,
       positionY: 380,
       emoji: "📜",
-      interaction: "查看本周挑战",
+      interaction: "查看进阶挑战",
     },
   ];
 }

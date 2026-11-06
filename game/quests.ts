@@ -1,6 +1,6 @@
 import type { Quest, Badge } from "@/types";
 
-// 每日任务
+// 展示版探索任务：累计一次，不自动每日重置；旧 ID/frequency 为存档兼容保留。
 export const DAILY_QUESTS: Quest[] = [
   {
     id: "daily-explore-1",
@@ -59,7 +59,7 @@ export const DAILY_QUESTS: Quest[] = [
   },
 ];
 
-// 每周任务
+// 展示版进阶挑战：累计一次，不自动每周重置。
 export const WEEKLY_QUESTS: Quest[] = [
   {
     id: "weekly-all-districts",
@@ -101,22 +101,22 @@ export const ACHIEVEMENT_QUESTS: Quest[] = [
   {
     id: "badge-coffee-3",
     title: "咖啡探索者",
-    description: "探访 3 家咖啡店",
+    description: "探访 2 家咖啡店",
     type: "collection",
     frequency: "achievement",
     target: { type: "category", value: "coffee" },
-    targetCount: 3,
+    targetCount: 2,
     reward: { exp: 50, coins: 30, badge: "☕ 咖啡探索者" },
     icon: "☕",
   },
   {
     id: "badge-food-5",
     title: "美食猎人",
-    description: "探访 5 家美食地点",
+    description: "探访 1 家美食地点",
     type: "collection",
     frequency: "achievement",
     target: { type: "category", value: "food" },
-    targetCount: 5,
+    targetCount: 1,
     reward: { exp: 80, coins: 50, badge: "🍜 美食猎人" },
     icon: "🍜",
   },
@@ -156,13 +156,8 @@ export const ACHIEVEMENT_QUESTS: Quest[] = [
 ];
 
 // 徽章列表
-export const BADGES: Badge[] = [
-  { id: "badge-coffee-3", name: "咖啡探索者", description: "探访3家咖啡店", emoji: "☕", unlocked: false },
-  { id: "badge-food-5", name: "美食猎人", description: "探访5家美食地点", emoji: "🍜", unlocked: false },
-  { id: "badge-culture-3", name: "艺术漫游者", description: "探访3个展览", emoji: "🎨", unlocked: false },
-  { id: "badge-explore-10", name: "城市冒险家", description: "探索10个地点", emoji: "🗺️", unlocked: false },
-  { id: "badge-alldistricts", name: "环岛达人", description: "探索全部5岛", emoji: "🏝️", unlocked: false },
-];
+// Badge copy is derived from its quest, avoiding a second conflicting rule table.
+export const BADGES: Badge[] = ACHIEVEMENT_QUESTS.map(q => ({id:q.id,name:q.title,description:q.description,emoji:q.icon,unlocked:false}));
 
 // 全部任务
 export const ALL_QUESTS: Quest[] = [...DAILY_QUESTS, ...WEEKLY_QUESTS, ...ACHIEVEMENT_QUESTS];

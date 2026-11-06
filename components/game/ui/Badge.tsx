@@ -1,4 +1,4 @@
-import { gameColors, gameRadius, gameShadow } from "@/styles/game-theme";
+import { gameColors, gameShadow } from "@/styles/game-theme";
 
 interface BadgeProps {
   emoji: string;

@@ -1,0 +1,50 @@
+{
+  "version": "home-v5",
+  "designReference": "../final-delivery/home-3d-concept-v5.png",
+  "camera": {
+    "position": [
+      11,
+      10,
+      15
+    ],
+    "target": [
+      0,
+      1.7,
+      -0.5
+    ],
+    "verticalSpan": 9.94
+  },
+  "boundsMeters": [
+    9.4,
+    5.3,
+    9.0
+  ],
+  "openings": [
+    {
+      "id": "W01",
+      "type": "window",
+      "width": 3.6,
+      "sill": 1.38,
+      "spring": 3.05,
+      "wallThickness": 0.24,
+      "booleanApplied": true
+    },
+    {
+      "id": "D01",
+      "type": "door",
+      "width": 1.42,
+      "height": 3.9,
+      "destination": "balcony",
+      "booleanApplied": true
+    }
+  ],
+  "notes": [
+    "Intentional roofless cutaway viewer; no free walking",
+    "Window backdrop rendered from separate 3D blue-sky and trees scene, not a navigable street",
+    "All furniture authored locally with Blender, no paid services"
+  ],
+  "preview": "renders/home-v5.png",
+  "bytes": 2456864,
+  "sha256": "61895f964e99b2570a86268c304d5d232c7b8c9019f27f60c6e140f4946db4e0",
+  "triangles": 17786
+}

@@ -1,10 +1,11 @@
 "use client";
 
+import Modal from "./ui/Modal";
 import { useState } from "react";
 import { LOCATIONS } from "@/data/locations";
 import { DISTRICTS } from "@/data/districts";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { gameColors, gameRadius, gameShadow } from "@/styles/game-theme";
+import { gameColors } from "@/styles/game-theme";
 import GameButton from "@/components/game/ui/GameButton";
 
 interface PublishPostProps {
@@ -34,8 +35,8 @@ export default function PublishPost({ onPublish, onClose }: PublishPostProps) {
   }));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+    <Modal label="发布本机动态" onClose={onClose}>
+
 
       {/* 底部弹出面板 */}
       <div
@@ -53,7 +54,7 @@ export default function PublishPost({ onPublish, onClose }: PublishPostProps) {
         {/* 标题 */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-[var(--ink)]">📝 发布动态</h2>
-          <button onClick={onClose} className="text-[var(--ink-faint)] text-sm">✕</button>
+          <button aria-label="关闭发布动态" onClick={onClose} className="text-[var(--ink-faint)] text-sm">✕</button>
         </div>
 
         {/* 用户信息 */}
@@ -137,6 +138,6 @@ export default function PublishPost({ onPublish, onClose }: PublishPostProps) {
           📮 发布到岛民广场
         </GameButton>
       </div>
-    </div>
+    </Modal>
   );
 }

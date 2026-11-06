@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {CITY_DESTINATIONS} from '../data/city-destinations.ts';
+import {canStand} from '../lib/city-movement.ts';
+import {wheelView,clampView} from '../lib/city-zoom.ts';
+const model=JSON.parse(readFileSync(new URL('../public/models/city-v4.json',import.meta.url)));
+test('all destinations land on safe scene positions',()=>{for(const d of CITY_DESTINATIONS)assert.equal(canStand(d,model.colliders,model.bounds,.35,model.shoreline),true,d.name);});
+test('touchpad zoom is continuous and has hard limits',()=>{assert.ok(wheelView(13,10)>13);assert.ok(wheelView(13,-10)<13);assert.equal(clampView(0),8);assert.equal(clampView(100),40);assert.ok(wheelView(13,-10,0,true)<wheelView(13,-10));});
+test('wheel line units match pixel units',()=>assert.equal(wheelView(13,1,1),wheelView(13,16,0)));

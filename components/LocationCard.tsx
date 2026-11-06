@@ -5,6 +5,7 @@ interface LocationCardProps {
   distance: string;
   recommendCount: number;
   emoji: string;
+  onExplore?: () => void;
 }
 
 export default function LocationCard({
@@ -13,6 +14,7 @@ export default function LocationCard({
   distance,
   recommendCount,
   emoji,
+  onExplore,
 }: LocationCardProps) {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-black/5 spring-transition hover:shadow-md hover:-translate-y-1">
@@ -27,13 +29,13 @@ export default function LocationCard({
           <span className="bg-[var(--ocean)]/8 text-[var(--ocean)] px-1.5 py-0.5 rounded">
             {tag}
           </span>
-          <span>📍 {distance}</span>
+          <span>📍 示例距离 {distance}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-[var(--ink-faint)]">
-            👥 {recommendCount} 人推荐
+            👥 示例热度 {recommendCount}
           </span>
-          <button className="text-[10px] font-bold text-white bg-[var(--ocean)] px-3 py-1 rounded-full hover:bg-[var(--ocean-deep)] transition-colors">
+          <button onClick={onExplore} aria-label={`探索${name}`} className="text-[10px] font-bold text-white bg-[var(--ocean)] px-3 py-1 rounded-full hover:bg-[var(--ocean-deep)] transition-colors">
             去探索
           </button>
         </div>

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import Modal from "./ui/Modal";
+import ExplorationNextSteps from "./ExplorationNextSteps";
 import type { Location } from "@/types";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useQuests } from "@/contexts/QuestContext";
@@ -18,24 +20,28 @@ export default function LocationPanel({ location, onClose }: LocationPanelProps)
   const [panelState, setPanelState] = useState<PanelState>("intro");
   const [result, setResult] = useState<{ exp: number; coins: number; isFirst: boolean } | null>(null);
 
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
   const alreadyExplored = isExplored(location.id);
 
   const handleExplore = () => {
+    if (timer.current) return;
     setPanelState("exploring");
     // 模拟探索过程 1.2s
-    setTimeout(() => {
+    timer.current = setTimeout(() => {
       const r = exploreLocation(location.id);
       // 触发任务进度更新
-      onLocationExplored(location.id, location.category, location.districtId);
+      if (r.success && r.isFirstTime) onLocationExplored(location.id, location.category, location.districtId);
       setResult({ exp: r.expGained, coins: r.coinsGained, isFirst: r.isFirstTime });
       setPanelState("result");
     }, 1200);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+    <Modal label={`${location.name}探索详情`} onClose={onClose}>
       {/* 背景遮罩 */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+
 
       {/* 弹窗内容 */}
       <div
@@ -44,6 +50,7 @@ export default function LocationPanel({ location, onClose }: LocationPanelProps)
       >
         {/* 关闭按钮 */}
         <button
+          aria-label="关闭探索详情"
           onClick={onClose}
           className="absolute top-3 right-3 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-[var(--ink-faint)] text-sm"
         >
@@ -57,12 +64,13 @@ export default function LocationPanel({ location, onClose }: LocationPanelProps)
             <div className="text-5xl mb-2">{location.emoji}</div>
             <h2 className="text-lg font-bold text-[var(--ink)]">{location.name}</h2>
             <div className="inline-block px-2 py-0.5 rounded-full bg-[var(--ocean)]/10 text-[10px] text-[var(--ocean)] mt-1">
-              {location.tag} · {location.distance}
+              {location.tag} · 示例距离 {location.distance}
             </div>
             <p className="text-xs text-[var(--ink-soft)] mt-3 leading-relaxed px-2">
               {location.description}
             </p>
 
+            <p className="mt-2 text-[10px] text-[var(--ink-faint)]">游戏内探索体验，不代表现实到访；此地点详情不含独立 3D 街区。</p>
             {/* 奖励预览 */}
             <div className="mt-3 p-3 rounded-xl bg-gray-50 flex justify-around">
               <div className="text-center">
@@ -138,6 +146,7 @@ export default function LocationPanel({ location, onClose }: LocationPanelProps)
               </div>
             )}
 
+            <ExplorationNextSteps />
             <button
               onClick={onClose}
               className="w-full mt-4 py-3 rounded-xl bg-[var(--ocean)] text-white font-bold text-sm spring-transition hover:brightness-110 active:scale-95"
@@ -147,6 +156,6 @@ export default function LocationPanel({ location, onClose }: LocationPanelProps)
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }
